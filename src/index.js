@@ -7,15 +7,34 @@ class Game {
   start() {
     this.player = new Player()
     this.attachEventListeners()
-   
+
     this.createObstacles()
     this.moveObstacles()
+  }
+  detectCollision(obstacle) {
+    const playerRect = this.player.domElement.getBoundingClientRect()
+  
+    this.obstacles.forEach((obstacleInstance) => {
+      const obstacleRect = obstacleInstance.domElement.getBoundingClientRect()
+  
+      if (
+        playerRect.top < obstacleRect.bottom &&
+        playerRect.bottom > obstacleRect.top &&
+        playerRect.left < obstacleRect.right &&
+        playerRect.right > obstacleRect.left
+      ) {
+        this.player.domElement.style.backgroundColor = 'blue'
+        clearInterval(this.moveInterval)
+        alert('You crashed')
+        window.location.reload()
+      }
+    })
   }
 
   attachEventListeners() {
     window.addEventListener('keydown', (event) => {
       const input = event.key
-      if (input === 'ArrowLeft') {
+      if (input === 'ArrowLeft' && this.player.positionX < 100) {
         this.player.moveLeft()
       } else if (input === 'ArrowRight') {
         this.player.moveRight()
@@ -24,9 +43,10 @@ class Game {
   }
 
   moveObstacles() {
-    setInterval(() => {
+    this.moveInterval = setInterval(() => {
       this.obstacles.forEach((obstacle) => {
         obstacle.moveDown()
+        this.detectCollision(obstacle)
       })
     }, 60)
   }
@@ -35,7 +55,7 @@ class Game {
     setInterval(() => {
       const obstacle = new Obstacle()
       this.obstacles.push(obstacle)
-    }, 1000)
+    }, 3000)
   }
 }
 
@@ -56,7 +76,7 @@ class Player {
     nodeDOM.style.height = `${this.height}vh`
     nodeDOM.style.bottom = this.positionY + 'vh'
     nodeDOM.style.left = `${this.positionX}vw`
-    
+
     const board = document.getElementById('board')
     board.appendChild(nodeDOM)
     return nodeDOM
@@ -77,7 +97,7 @@ class Obstacle {
   constructor() {
     this.width = 10
     this.height = 5
-    this.positionX = 50 - this.width / 2
+    this.positionX = Math.floor(Math.random() * (100 - this.width))
     this.positionY = 95 
 
     this.domElement = this.createElement()
@@ -98,16 +118,9 @@ class Obstacle {
 
   moveDown() {
     this.positionY -= 1
-    this.domElement.style.bottom = `${this.positionY}vh` 
+    this.domElement.style.bottom = `${this.positionY}vh`
   }
 }
-
-
-
-
-
-
-
 
 const game = new Game()
 game.start()
